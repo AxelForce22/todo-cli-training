@@ -12,8 +12,12 @@ def load_tasks():
     # If the file doesn't exist yet, return an empty list
     if not os.path.exists(TASKS_FILE):
         return []
-    with open(TASKS_FILE, "r") as f:
-        return json.load(f)
+    try:
+        with open(TASKS_FILE, "r") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        print("Warning: tasks.json was corrupted and could not be read. Starting with an empty list.")
+        return []
 
 
 def save_tasks(tasks):
