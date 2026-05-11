@@ -34,7 +34,9 @@ def list_tasks(tasks):
     for i, task in enumerate(tasks, start=1):
         # Show [x] if done, [ ] if not done
         status = "[x]" if task["done"] else "[ ]"
-        print(f"  {i}. {status} {task['name']}")
+        # Use .get() so old tasks without a priority field still display fine
+        priority = task.get("priority", "low")
+        print(f"  {i}. {status} [{priority}] {task['name']}")
 
 
 def add_task(tasks):
@@ -42,9 +44,13 @@ def add_task(tasks):
     if not name:
         print("Task name cannot be empty.")
         return
-    tasks.append({"name": name, "done": False})
+    # Ask for priority, defaulting to "low" if the user just presses Enter
+    priority_input = input("Enter priority (low / medium / high) [default: low]: ").strip().lower()
+    if priority_input not in ("low", "medium", "high"):
+        priority_input = "low"
+    tasks.append({"name": name, "done": False, "priority": priority_input})
     save_tasks(tasks)
-    print(f"Task '{name}' added.")
+    print(f"Task '{name}' added with priority '{priority_input}'.")
 
 
 def complete_task(tasks):
@@ -81,7 +87,8 @@ def search_tasks(tasks):
     print("\nMatching tasks:")
     for task in matches:
         status = "[x]" if task["done"] else "[ ]"
-        print(f"  {status} {task['name']}")
+        priority = task.get("priority", "low")
+        print(f"  {status} [{priority}] {task['name']}")
 
 
 def get_task_number(tasks, prompt):

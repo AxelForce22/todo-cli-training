@@ -87,17 +87,49 @@ def test_list_tasks_shows_done_status(capsys):
     assert "[x]" in printed
     assert "[ ]" in printed
 
+def test_list_tasks_shows_priority(capsys):
+    # Priority should appear in the output
+    tasks = [{"name": "Buy milk", "done": False, "priority": "high"}]
+    todo.list_tasks(tasks)
+    printed = capsys.readouterr().out
+    assert "[high]" in printed
+
+def test_list_tasks_old_task_without_priority(capsys):
+    # Old tasks without a priority field should default to showing [low]
+    tasks = [{"name": "Old task", "done": False}]
+    todo.list_tasks(tasks)
+    printed = capsys.readouterr().out
+    assert "[low]" in printed
+
 
 # --- Tests for add_task() ---
 
 def test_add_task_adds_to_list(temp_tasks_file, monkeypatch):
-    # Simulate the user typing "Buy milk" when prompted
-    monkeypatch.setattr("builtins.input", lambda _: "Buy milk")
+    # Simulate the user typing "Buy milk" then choosing "medium" priority
+    responses = iter(["Buy milk", "medium"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
     tasks = []
     todo.add_task(tasks)
     assert len(tasks) == 1
     assert tasks[0]["name"] == "Buy milk"
     assert tasks[0]["done"] == False
+    assert tasks[0]["priority"] == "medium"
+
+def test_add_task_default_priority_is_low(temp_tasks_file, monkeypatch):
+    # If the user presses Enter without typing a priority, it should default to "low"
+    responses = iter(["Buy milk", ""])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    tasks = []
+    todo.add_task(tasks)
+    assert tasks[0]["priority"] == "low"
+
+def test_add_task_invalid_priority_defaults_to_low(temp_tasks_file, monkeypatch):
+    # If the user types something invalid like "urgent", it should default to "low"
+    responses = iter(["Buy milk", "urgent"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    tasks = []
+    todo.add_task(tasks)
+    assert tasks[0]["priority"] == "low"
 
 def test_add_task_empty_name_does_not_add(temp_tasks_file, monkeypatch, capsys):
     # Simulate the user pressing Enter with no text
@@ -110,11 +142,13 @@ def test_add_task_empty_name_does_not_add(temp_tasks_file, monkeypatch, capsys):
 
 def test_add_task_saves_to_file(temp_tasks_file, monkeypatch):
     # After adding a task it should be saved in the file
-    monkeypatch.setattr("builtins.input", lambda _: "Read a book")
+    responses = iter(["Read a book", "high"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
     tasks = []
     todo.add_task(tasks)
     content = json.loads(temp_tasks_file.read_text())
     assert content[0]["name"] == "Read a book"
+    assert content[0]["priority"] == "high"
 
 
 # --- Tests for complete_task() ---
