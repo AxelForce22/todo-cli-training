@@ -71,6 +71,19 @@ def delete_task(tasks):
     print(f"Task '{removed['name']}' deleted.")
 
 
+def search_tasks(tasks):
+    query = input("Enter search word: ").strip().lower()
+    # Find tasks where the query appears anywhere in the name (case-insensitive)
+    matches = [task for task in tasks if query in task["name"].lower()]
+    if not matches:
+        print("No tasks found.")
+        return
+    print("\nMatching tasks:")
+    for task in matches:
+        status = "[x]" if task["done"] else "[ ]"
+        print(f"  {status} {task['name']}")
+
+
 def get_task_number(tasks, prompt):
     # Ask the user to pick a task by number and validate the input
     while True:
@@ -97,9 +110,10 @@ def main():
         print("  2. List tasks")
         print("  3. Mark task as done")
         print("  4. Delete task")
-        print("  5. Quit")
+        print("  5. Search tasks")
+        print("  6. Quit")
 
-        choice = input("\nEnter your choice (1-5): ").strip()
+        choice = input("\nEnter your choice (1-6): ").strip()
 
         if choice == "1":
             add_task(tasks)
@@ -110,10 +124,12 @@ def main():
         elif choice == "4":
             delete_task(tasks)
         elif choice == "5":
+            search_tasks(tasks)
+        elif choice == "6":
             print("Goodbye!")
             break
         else:
-            print("Invalid choice. Please enter a number between 1 and 5.")
+            print("Invalid choice. Please enter a number between 1 and 6.")
 
 
 # Run the app when this file is executed directly

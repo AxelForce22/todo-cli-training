@@ -174,3 +174,38 @@ def test_get_task_number_out_of_range_then_valid(monkeypatch):
     tasks = [{"name": "Task A", "done": False}]
     result = todo.get_task_number(tasks, "Pick: ")
     assert result == 0
+
+
+# --- Tests for search_tasks() ---
+
+def test_search_tasks_finds_match(monkeypatch, capsys):
+    # Searching "milk" should show "Buy milk"
+    monkeypatch.setattr("builtins.input", lambda _: "milk")
+    tasks = [{"name": "Buy milk", "done": False}, {"name": "Walk dog", "done": False}]
+    todo.search_tasks(tasks)
+    printed = capsys.readouterr().out
+    assert "Buy milk" in printed
+    assert "Walk dog" not in printed
+
+def test_search_tasks_case_insensitive(monkeypatch, capsys):
+    # Searching "MILK" should still find "Buy milk"
+    monkeypatch.setattr("builtins.input", lambda _: "MILK")
+    tasks = [{"name": "Buy milk", "done": False}]
+    todo.search_tasks(tasks)
+    printed = capsys.readouterr().out
+    assert "Buy milk" in printed
+
+def test_search_tasks_no_match(monkeypatch, capsys):
+    # Searching for something that doesn't exist should print a friendly message
+    monkeypatch.setattr("builtins.input", lambda _: "xyz")
+    tasks = [{"name": "Buy milk", "done": False}]
+    todo.search_tasks(tasks)
+    printed = capsys.readouterr().out
+    assert "No tasks found" in printed
+
+def test_search_tasks_empty_list(monkeypatch, capsys):
+    # Searching with no tasks should print "No tasks found"
+    monkeypatch.setattr("builtins.input", lambda _: "milk")
+    todo.search_tasks([])
+    printed = capsys.readouterr().out
+    assert "No tasks found" in printed
